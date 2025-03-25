@@ -7,6 +7,10 @@ AUTHOR = "aluk@seas.upenn.edu"
 
 app = flask.Flask(__name__)
 
+# This endpoint returns a simple greeting message.
+@app.route("/")
+def hello():
+    return f"Hello from my Password Validator! &mdash; <tt>{AUTHOR}</tt>", 200
 
 # This endpoint validates the provided password according to the following policy:
 #   - Length >= 8
