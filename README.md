@@ -1,158 +1,98 @@
-# CIS 3500 — Password Validator Starter Code
+# CIS 3500 — Password Validator
 
-This repository contains the starter code for the second part of Penn CIS 3500's **Password Validator** exercise:
+This repository contains my completed implementation of the Password Validator assignment for CIS 3500 at the University of Pennsylvania. The goal of this project was to build and deploy a simple password validation API endpoint that verifies whether a given password meets the following criteria:
 
-1. In the first part, you tested a password validator API endpoint
+- **Length:** At least 8 characters  
+- **Uppercase:** Contains at least one uppercase letter  
+- **Digit:** Contains at least one digit  
+- **Special Character:** Contains at least one of the following: `!@#$%^&*`
 
-2. In this second part, you will implement a simple password validator and deploy it.
+The endpoint is available at `/v1/checkPassword` and accepts a POST request with a JSON body containing the password. It returns a JSON response with two keys:
+- `valid`: a boolean indicating if the password meets the criteria.
+- `reason`: a string explaining why the password is invalid (empty if the password is valid).
 
-## Instructions
+Additionally, the API always returns an HTTP status code of 200, even when the password does not meet the validation rules.
 
-### Initial Deployment
+## Implementation Summary
 
-1. Fork (or import/copy) this repository to your own GitHub account, keep the name `my-password-validator`.
+- **Password Validation:**  
+  Implemented in `main.py`, the password validator checks for all the required conditions. Detailed error messages are concatenated and returned in the JSON response if the password is invalid.
 
-2. Sign-up for an account at [Render.com](https://www.render.com/). For this entire exercise, the free tier is sufficient.
+- **HTTP Response:**  
+  The API endpoint always responds with a 200 status code, ensuring that even when a password fails validation, the response is properly formatted.
 
-3. Once you are logged in to Render's dashboard, click on the `+ Add new` button and select `Blueprint`:
+- **Testing:**  
+  I have added a comprehensive test suite using `pytest` in `test_main.py` to cover:
+  - The root endpoint returning the correct greeting.
+  - Various password scenarios including valid passwords and different invalid cases (too short, missing uppercase, missing digit, and missing special character).
 
-    ![Render's dashboard, with the `+ Add new` menu opened and the `Blueprint` selected.](http://togetherwe.dev/tutorials/render-dashboard.png)
+## Deployment
 
-4. In the following form, scroll down, and select `Public Git Repository` and choose the repository you forked in step 1. Please note:
+### Render Deployment
 
-    - Render can deploy from a public repository, or, if you connect your GitHub account to Render and provide the necessary permission, from a private repository. Here, for simplicity, we are using the _public repository_ option.
+1. **Repository Setup:**  
+   I forked/imported the repository into my GitHub account with the name `my-password-validator`.
 
-    - **One consequence of using the `Public Git Repository` option is that you will have to manually trigger a new deployment every time you push new code to your repository.** If you want to automate at a later point, you can connect your GitHub account to Render and use the _GitHub integration_ option.
+2. **Render.com:**  
+   I created an account on [Render.com](https://www.render.com/), used the "Blueprint" option to deploy from my public Git repository, and confirmed that the initial deployment was successful. The deployed app displays the greeting message:
+   
+   > Hello from my Password Validator! — `aluk@seas.upenn.edu`
 
-    - We are using the **Infrastructure as Code** approach, where the configuration for the deployment is stored in the repository itself, in the file `render.yaml` using Render's Blueprint format (see [full documentation here](https://render.com/docs/blueprint-spec)). This is a best practice, as it allows you to version-control your deployment configuration. **For this reason, you should not have to provide any configuration beyond the URL to your GitHub repository.**
-
-5. Once your app has been added, Render will start building and deploying an initial release. You can see the progress in the dashboard. Once it is done, you will see a URL for your app. Click on it to see your app live.
-
-> Hello from my Password Validator! — `lumbroso@seas.upenn.edu`
-
-6. Don't forget to change the `AUTHOR` variable in the `main.py` file to your own Penn email address!
+3. **Configuration:**  
+   The deployment configuration is stored in `render.yaml`, ensuring that the deployment process is version-controlled and reproducible.
 
 ### Local Development
 
-The above instructions should help you deploy this project to Render. However, you may want to run the project locally for development purposes.
+To run the project locally, follow these steps:
 
-To do so, you will need to have Python 3 installed on your machine.
+1. **Clone the Repository:**  
+   Clone the repository to your local machine.
 
-1. Clone your repository to your local machine.
+2. **Install Dependencies:**  
+   Use `pipenv` to install the required packages:
+   ```bash
+   pipenv install
+   ```
 
-2. Open a terminal and navigate to the project's directory.
+3. **Run the App Locally:**
+   Activate the environment and run the server with:
+   ```bash
+   pipenv run gunicorn main:app --bind 0.0.0.0:1234
+   ```
+   Visit `http://localhost:1234` to see the greeting message.
 
-3. Use `pipenv` (you may have to install it: `pip install pipenv`) to install the project's dependencies:
+## Testing the Endpoint
 
-    ```bash
-    pipenv install
-    ```
+After deployment (or when running locally), you can test the password validation endpoint:
 
-    The benefit of using `pipenv` is that it transparently creates a virtual environment for each of your project, so you don't have to worry about dependencies conflicting with other projects.
+1. **Browser Test:**  
+   Visit your deployed URL (or `http://localhost:1234`) to confirm the greeting is displayed.
 
-4. Once the dependencies are installed (`flask` and `gunicorn`), you can activate the virtual environment:
+2. **API Test:**  
+   Send a POST request to `/v1/checkPassword` with a JSON payload. For example:
+   ```bash
+   curl -X POST -H "Content-Type: application/json" \
+        -d '{"password":"Abcdef1!"}' \
+        https://your-deployed-app-url/v1/checkPassword
+   ```
+   A valid password returns:
+   ```json
+   {"valid": true, "reason": ""}
+   ```
+   Invalid passwords will return a reason message indicating the failed validations.
 
-    ```bash
-    pipenv run gunicorn main:app --bind 0.0.0.0:1234
-    ```
+## Test Suite
 
-    The above command will start a local server on port 1234. You can access it by visiting `http://localhost:1234` in your browser.
+The project includes a test suite (`test_main.py`) built with `pytest` that verifies:
+- The root endpoint is functioning.
+- The `/v1/checkPassword` endpoint validates passwords correctly, providing detailed error messages when the password does not meet one or more criteria.
 
-
-### Testing the Endpoint
-
-In this section, replace `https://password-validator.onrender.com/` with the URL of your Render app (or of your local server, if you are running it locally).
-
-**Browser test:** Go to https://password-validator.onrender.com/; you should see the "`Hello from my Password Validator!`" text.
-
-**Endpoint test:** You can test the password validation endpoint by sending a POST request with a JSON body. For example, using `curl`:
-
+To run the tests, simply execute:
 ```bash
-curl -X POST -H "Content-Type: application/json" \
-  -d '{"password":"Abc12345"}' \
-  https://password-validator.onrender.com/checkPassword
+pipenv run pytest
 ```
-
-This should initially return `{"reason":"Not implemented","valid":false}`.
-
-You can also use a tool like [RapidAPI](https://paw.cloud/) for macOS, or [Postman](https://www.postman.com/), for  to send the request.
-
-
-### Assignment
-
-**THE SPECIFIC PASSWORD POLICY TO IMPLEMENT WILL BE COMMUNICATED IN CLASS. PLEASE FOLLOW CAREFULLY.**
-
-The goal of the assignment is to implement a password validation endpoint that checks if a password is valid or not. The endpoint should be available at `/v1/checkPassword` and should accept a POST request with a JSON body that looks like this:
-
-```json
-{
-    "password": "my-password"
-}
-```
-
-The response should be a JSON object with a two keys, `valid`, that is `true` if the password is valid and `false` otherwise; and `reason`, a string that explains why the password is invalid (this string is always present, but empty when the password is valid).
-
-Initially all passwords are considered invalid, and the app returns an HTTP status code of 501 (Not Implemented). You should implement the password validation logic in the `main.py` file, and ensure the returned HTTP status code is 200 at all times (even when the password is invalid).
-
-## Creating a Test Suite
-
-1. You can add tests by adding the `pytest` package:
-
-    ```bash
-    pipenv install pytest --dev
-    ```
-
-2. Add your tests to a `test_main.py` file (the tool `pytest` automatically looks for files that start with `test_` or that are in the `tests` directory):
-
-    ```python
-    # test_main.py
-    import pytest
-    from main import app
-
-
-    @pytest.fixture
-    def client():
-        """
-        Pytest fixture that creates a Flask test client from the 'app' in main.py.
-        """
-        with app.test_client() as client:
-            yield client
-
-
-    def test_root_endpoint(client):
-        """
-        Test the GET '/' endpoint to ensure it returns
-        the greeting and a 200 status code.
-        """
-        resp = client.get("/")
-        assert resp.status_code == 200
-        assert b"Hello from my Password Validator!" in resp.data
-
-
-    # Not that this test only makes sense for the starter code,
-    # in practice we would not test for a 501 status code!
-
-    def test_check_password_not_implemented(client):
-        """
-        Test the POST '/v1/checkPassword' endpoint to ensure
-        it returns HTTP 501 (Not Implemented) in the starter code.
-        """
-        resp = client.post("/v1/checkPassword", json={"password": "whatever"})
-        assert resp.status_code == 501
-        data = resp.get_json()
-        assert data.get("reason") == "Not implemented"
-        assert data.get("valid") is False
-    ```
-
-3. You can run them with:
-
-    ```bash
-    pipenv run pytest
-    ```
-
-    This will run all the tests in the `test_main.py` file.
-
 
 ## Credits
 
-The list of banned passwords is from [this repository](https://github.com/danielmiessler/SecLists/blob/master/Passwords/Common-Credentials/10-million-password-list-top-1000.txt).
+This project was completed for CIS 3500 — Software Design/Engineering with Professor Lumbroso at the University of Pennsylvania.
+Feel free to reach out if you have any questions or suggestions.
